@@ -9,10 +9,10 @@ from django.core.exceptions import PermissionDenied
 def passenger_dashboard(request):
     if not(request.user.is_passenger):
         raise PermissionDenied
-    return HttpResponse("<h1>ehhehehe</h1>")
+    return HttpResponse("<h1>Passenger Dashboard</h1>")
 
 @login_required
 def driver_dashboard(request):
     if not(request.user.is_driver):
         raise PermissionDenied
-    return HttpResponse("<h1>ehhehehe</h1>")
+    return HttpResponse("<h1>Driver Dashboard</h1>")
