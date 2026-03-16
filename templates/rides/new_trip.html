@@ -1,0 +1,10 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Create Trip</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Create Trip</button>
+</form>
+<a href="{% url 'rides:driver_dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}
