@@ -5,6 +5,10 @@ from django.core.exceptions import PermissionDenied
 from .forms import NewTripForm
 from . import utils
 from .models import Trip, RouteNode
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from network.models import Node
 
 # Create your views here.
 
@@ -64,3 +68,35 @@ def cancel_trip(request, trip_id):
     trip.status = 'X'
     trip.save()
     return redirect('rides:driver_dashboard')
+
+@login_required
+def complete_trip(request, trip_id):
+    trip = Trip.objects.get(id=trip_id, driver=request.user)
+    if trip.driver != request.user:
+        raise PermissionDenied
+    trip.status = 'C'
+    trip.save()
+    return redirect('rides:driver_dashboard')
+
+@api_view(['POST'])
+def update_current_node(request, trip_id):
+    try:
+        trip = Trip.objects.get(id=trip_id, driver=request.user)
+    except Trip.DoesNotExist:
+        return Response({'error': 'Trip not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    node_id = request.data.get('node_id')
+    try:
+        node = Node.objects.get(id=node_id)
+    except Node.DoesNotExist:
+        return Response({'error': 'Node not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    route_node = trip.route.filter(node=node).first()
+    if not route_node:
+        return Response({'error': 'Node not on route'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    trip.route.filter(order__lte=route_node.order).update(passed=True)
+    trip.current_node = node
+    trip.save()
+    
+    return Response({'success': f'Current node updated to {node.name}'})
