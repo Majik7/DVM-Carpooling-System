@@ -55,3 +55,12 @@ def new_ride(request):
         form = NewTripForm()
 
     return render(request, 'rides/new_trip.html', context = {'form': form})
+
+@login_required
+def cancel_trip(request, trip_id):
+    trip = Trip.objects.get(pk=trip_id)
+    if trip.driver != request.user:
+        raise PermissionDenied
+    trip.status = 'X'
+    trip.save()
+    return redirect('rides:driver_dashboard')
