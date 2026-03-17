@@ -1,0 +1,30 @@
+{% extends 'accounts/base.html' %}
+{% block content %}
+<h2>Welcome, {{ driver.username }}</h2>
+<a href="{% url 'rides:new_trip' %}" class="btn btn-primary mb-3">Create New Trip</a>
+
+<h4>Active Trips</h4>
+{% for trip in ongoing_trips %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ trip.start_node.name }} → {{ trip.end_node.name }}</p>
+        <p>Max Passengers: {{ trip.max_passengers }}</p>
+        <p>Status: {{ trip.get_status_display }}</p>
+    </div>
+</div>
+{% empty %}
+<p>No active trips.</p>
+{% endfor %}
+
+<h4 class="mt-4">Past Trips</h4>
+{% for trip in completed_trips %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ trip.start_node.name }} → {{ trip.end_node.name }}</p>
+        <p>Status: {{ trip.get_status_display }}</p>
+    </div>
+</div>
+{% empty %}
+<p>No past trips.</p>
+{% endfor %}
+{% endblock %}

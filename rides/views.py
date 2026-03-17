@@ -18,7 +18,15 @@ def passenger_dashboard(request):
 def driver_dashboard(request):
     if not(request.user.is_driver):
         raise PermissionDenied
-    return HttpResponse("<h1>Driver Dashboard</h1>")
+    else:
+        ongoing_rides = Trip.objects.filter(driver = request.user, status = 'O')
+        completed_rides = Trip.objects.filter(driver = request.user, status = 'C')
+
+        return render(request, 'rides/driver_dash.html', context = {
+            'ongoing_trips': ongoing_rides,
+            'completed_trips': completed_rides,
+            'driver': request.user,
+        })
 
 @login_required
 def new_ride(request):

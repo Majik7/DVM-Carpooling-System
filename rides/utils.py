@@ -8,7 +8,7 @@ def create_path(start_node, end_node):
         popped = queue.pop(0)
         if popped == end_node:
             break
-        for edge in popped.start_from.all():
+        for edge in popped.outgoing.all():
             neighbor = edge.next_node
             if neighbor not in visited:
                 visited.append(neighbor)
