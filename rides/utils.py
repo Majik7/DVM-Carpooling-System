@@ -2,6 +2,9 @@ from network.models import Node, Edge
 from .models import CarpoolRequest
 
 def create_path(start_node, end_node):
+    if start_node == end_node:
+        return [start_node]
+        
     queue = [start_node] 
     visited = [start_node]
     parent = {}
@@ -46,23 +49,37 @@ def get_visible_requests(trip):
     pending_requests = CarpoolRequest.objects.filter(status='P')
     return [req for req in pending_requests if is_request_visible(trip, req)]
 
-def calculate_fare(trip, pickup_node, dropoff_node, p = 10, base_fee = 5):
-    remaining = list(trip.route.filter(passed = False).order_by('order'))
+def get_passengers_at_hop(trip, hop_index):
+    confirmed_offers = trip.offers.filter(status='A')
+    count = 0
+    for offer in confirmed_offers:
+        if offer.pickup_order <= hop_index <= offer.dropoff_order:
+            count += 1
+    return count
+
+def calculate_fare(trip, pickup_node, dropoff_node, p=10, base_fee=5):
+    remaining = list(trip.route.filter(passed=False).order_by('order'))
     remaining_nodes = [n.node for n in remaining]
-
-    pickup_index = None
-    for i, n in enumerate(remaining_nodes):
-        if n == pickup_node:
-            pickup_index = i
-            break
-
-    dropoff_index = None
-    for i, n in enumerate(remaining_nodes):
-        if n == dropoff_node:
-            dropoff_index = i
-            break
-
-    # if node/nodes not on route
-    if pickup_index is None or dropoff_index is None:
-        # detour = new length - original length
-        pass
+    original_length = len(remaining_nodes) - 1
+    
+    current = remaining_nodes[0]
+    destination = remaining_nodes[-1]
+    
+    new_length = (
+        len(create_path(current, pickup_node)) - 1 +
+        len(create_path(pickup_node, dropoff_node)) - 1 +
+        len(create_path(dropoff_node, destination)) - 1
+    )
+    
+    detour = new_length - original_length
+    
+    pickup_path = create_path(current, pickup_node)
+    pickup_order = len(pickup_path) - 1
+    dropoff_order = pickup_order + len(create_path(pickup_node, dropoff_node)) - 1
+    num_hops_of_passenger = dropoff_order - pickup_order
+    
+    fare = base_fee
+    for i in range(num_hops_of_passenger):
+        fare += p * (1 / (get_passengers_at_hop(trip, pickup_order + i) + 1))
+    
+    return detour, round(fare, 2), pickup_order, dropoff_order

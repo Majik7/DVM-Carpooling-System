@@ -8,6 +8,8 @@
         <p>Passenger: {{ req.passenger.username }}</p>
         <p>Pickup: {{ req.pickup_node.name }}</p>
         <p>Dropoff: {{ req.dropoff_node.name }}</p>
+        <p>Your Detour: {{ req.detour }} hops</p>
+        <p>Passenger Fare: ${{ req.fare }}</p>
         <a href="{% url 'rides:make_offer' trip.id req.id %}" class="btn btn-primary">Make Offer</a>
     </div>
 </div>
@@ -15,5 +17,19 @@
 <p>No carpool requests available.</p>
 {% endfor %}
 
-<a href="{% url 'rides:driver_dashboard' %}" class="btn btn-secondary">Back</a>
+<h3 class="mt-4">My Offers</h3>
+{% for offer in trip.offers.all %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>Passenger: {{ offer.carpool_request.passenger.username }}</p>
+        <p>Route: {{ offer.carpool_request.pickup_node.name }} → {{ offer.carpool_request.dropoff_node.name }}</p>
+        <p>Detour: {{ offer.detour }} hops | Fare: ${{ offer.fare }}</p>
+        <p>Status: <strong>{{ offer.get_status_display }}</strong></p>
+    </div>
+</div>
+{% empty %}
+<p>No offers made yet.</p>
+{% endfor %}
+
+<a href="{% url 'rides:driver_dashboard' %}" class="btn btn-secondary mt-3">Back</a>
 {% endblock %}

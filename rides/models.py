@@ -45,3 +45,5 @@ class Offer(models.Model):
     detour = models.IntegerField(default=0)
     fare = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     status = models.CharField(choices=STATUS_CHOICES, default='P', max_length=1)
+    pickup_order = models.IntegerField(default=0)
+    dropoff_order = models.IntegerField(default=0)

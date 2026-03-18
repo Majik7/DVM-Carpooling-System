@@ -1,0 +1,30 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Welcome, {{ passenger.username }}</h2>
+<a href="{% url 'rides:create_carpool_request' %}" class="btn btn-primary mb-3">Request a Carpool</a>
+
+<h4>Active Requests</h4>
+{% for req in active_requests %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ req.pickup_node.name }} → {{ req.dropoff_node.name }}</p>
+        <a href="{% url 'rides:view_offers' req.id %}" class="btn btn-info">View Offers</a>
+        <a href="{% url 'rides:cancel_request' req.id %}" class="btn btn-danger">Cancel</a>
+    </div>
+</div>
+{% empty %}
+<p>No active requests.</p>
+{% endfor %}
+
+<h4 class="mt-4">Confirmed Requests</h4>
+{% for req in confirmed_requests %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ req.pickup_node.name }} → {{ req.dropoff_node.name }}</p>
+        <p>Status: Confirmed</p>
+    </div>
+</div>
+{% empty %}
+<p>No confirmed requests.</p>
+{% endfor %}
+{% endblock %}

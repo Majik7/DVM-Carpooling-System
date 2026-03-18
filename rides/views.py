@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
 from .forms import NewTripForm, CarpoolRequestForm
 from . import utils
-from .models import Trip, RouteNode, CarpoolRequest
+from .models import Trip, RouteNode, CarpoolRequest, Offer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,9 +15,19 @@ from .serializers import CarpoolRequestSerializer
 
 @login_required
 def passenger_dashboard(request):
-    if not(request.user.is_passenger):
+    if not request.user.is_passenger:
         raise PermissionDenied
-    return HttpResponse("<h1>Passenger Dashboard</h1>")
+    
+    active_requests = CarpoolRequest.objects.filter(passenger=request.user, status='P')
+    confirmed_requests = CarpoolRequest.objects.filter(passenger=request.user, status='C')
+    cancelled_requests = CarpoolRequest.objects.filter(passenger=request.user, status='X')
+    
+    return render(request, 'rides/passenger_dash.html', {
+        'active_requests': active_requests,
+        'confirmed_requests': confirmed_requests,
+        'cancelled_requests': cancelled_requests,
+        'passenger': request.user
+    })
 
 @login_required
 def driver_dashboard(request):
@@ -143,6 +153,10 @@ def view_carpool_requests(request, trip_id):
     try:
         trip = Trip.objects.get(pk = trip_id)
         visible_requests = utils.get_visible_requests(trip)
+        for req in visible_requests:
+            detour, fare, _, _ = utils.calculate_fare(trip, req.pickup_node, req.dropoff_node)
+            req.detour = detour
+            req.fare = fare
     except:
         return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
 
@@ -150,4 +164,83 @@ def view_carpool_requests(request, trip_id):
         'trip': trip,
         'requests': visible_requests,
     })
+
+@login_required
+def make_offer(request, trip_id, request_id):
+    if not request.user.is_driver:
+        raise PermissionDenied
+    try:
+        trip = Trip.objects.get(id=trip_id, driver=request.user)
+    except Trip.DoesNotExist:
+        raise PermissionDenied
+    try:
+        carpool_request = CarpoolRequest.objects.get(id=request_id)
+    except CarpoolRequest.DoesNotExist:
+        raise PermissionDenied
+    
+    detour, fare, pickup_order, dropoff_order = utils.calculate_fare(trip, carpool_request.pickup_node, carpool_request.dropoff_node)
+    
+    Offer.objects.create(
+        trip=trip,
+        carpool_request=carpool_request,
+        detour=detour,
+        fare=fare,
+        pickup_order=pickup_order,
+        dropoff_order=dropoff_order
+    )
+    return redirect('rides:view_carpool_requests', trip_id=trip_id)
+
+@login_required
+def view_offers(request, request_id):
+    if not request.user.is_passenger:
+        raise PermissionDenied
+    try:
+        carpool_request = CarpoolRequest.objects.get(id=request_id, passenger=request.user)
+    except:
+        return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
+    
+    offers = carpool_request.offers.all()
+    return render(request, 'rides/view_offers.html', {
+        'carpool_request': carpool_request,
+        'offers': offers
+    })
+
+@login_required
+def confirm_offer(request, offer_id):
+    if not request.user.is_passenger:
+        raise PermissionDenied
+    try:
+        offer = Offer.objects.get(id=offer_id)
+    except Offer.DoesNotExist:
+        raise PermissionDenied
+    
+    if offer.carpool_request.passenger != request.user:
+        raise PermissionDenied
+    
+    offer.status = 'A'
+    offer.save()
+    
+    offer.carpool_request.offers.exclude(id=offer.id).update(status='R')
+    
+    offer.carpool_request.status = 'C'
+    offer.carpool_request.save()
+    
+    return redirect('rides:passenger_dashboard')
+
+@login_required
+def cancel_request(request, request_id):
+    if not request.user.is_passenger:
+        raise PermissionDenied
+    try:
+        carpool_request = CarpoolRequest.objects.get(id=request_id, passenger=request.user)
+    except CarpoolRequest.DoesNotExist:
+        raise PermissionDenied
+    
+    if carpool_request.status == 'C':
+        raise PermissionDenied  # cant cancel already confirmed request
+    
+    carpool_request.status = 'X'
+    carpool_request.save()
+    
+    return redirect('rides:passenger_dashboard')
     

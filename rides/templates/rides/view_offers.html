@@ -1,0 +1,20 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Offers for your request</h2>
+<p>Pickup: {{ carpool_request.pickup_node.name }} → Dropoff: {{ carpool_request.dropoff_node.name }}</p>
+
+{% for offer in offers %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>Driver: {{ offer.trip.driver.username }}</p>
+        <p>Detour: {{ offer.detour }} hops</p>
+        <p>Fare: ${{ offer.fare }}</p>
+        <a href="{% url 'rides:confirm_offer' offer.id %}" class="btn btn-success">Confirm</a>
+    </div>
+</div>
+{% empty %}
+<p>No offers yet.</p>
+{% endfor %}
+
+<a href="{% url 'rides:passenger_dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}
