@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
-from .forms import NewTripForm
+from .forms import NewTripForm, CarpoolRequestForm
 from . import utils
-from .models import Trip, RouteNode
+from .models import Trip, RouteNode, CarpoolRequest
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from network.models import Node
+from .serializers import CarpoolRequestSerializer
 
 # Create your views here.
 
@@ -78,6 +79,7 @@ def complete_trip(request, trip_id):
     trip.save()
     return redirect('rides:driver_dashboard')
 
+@login_required
 @api_view(['POST'])
 def update_current_node(request, trip_id):
     try:
@@ -100,3 +102,52 @@ def update_current_node(request, trip_id):
     trip.save()
     
     return Response({'success': f'Current node updated to {node.name}'})
+
+def create_carpool_request(request):
+    if not request.user.is_passenger:
+        raise PermissionDenied
+    if request.method == 'POST':
+        form = CarpoolRequestForm(request.POST)
+        if form.is_valid():
+            pickup_node = form.cleaned_data['pickup_node']
+            dropoff_node = form.cleaned_data['dropoff_node']
+            CarpoolRequest.objects.create(
+                passenger=request.user,
+                pickup_node=pickup_node,
+                dropoff_node=dropoff_node,
+            )
+            return redirect('rides:passenger_dashboard')
+    else:
+        form = CarpoolRequestForm()
+    return render(request, 'rides/carpool_request.html', {'form': form})
+
+@login_required
+@api_view(['POST'])
+def get_carpool_requests(request, trip_id):
+    if not request.user.is_driver:
+        raise PermissionDenied
+    try:
+        trip = Trip.objects.get(pk = trip_id, driver = request.user)
+    except:
+        return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
+    
+    visible_requests = utils.get_visible_requests(trip)
+    serializer = CarpoolRequestSerializer(visible_requests, many = True)
+    return Response(serializer.data)
+
+@login_required
+def view_carpool_requests(request, trip_id):
+    if not request.user.is_driver:
+        raise PermissionDenied
+    
+    try:
+        trip = Trip.objects.get(pk = trip_id)
+        visible_requests = utils.get_visible_requests(trip)
+    except:
+        return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
+
+    return render(request, 'rides/view_carpool_requests.html', context={
+        'trip': trip,
+        'requests': visible_requests,
+    })
+    

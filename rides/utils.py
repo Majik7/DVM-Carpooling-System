@@ -1,4 +1,5 @@
 from network.models import Node, Edge
+from .models import CarpoolRequest
 
 def create_path(start_node, end_node):
     queue = [start_node] 
@@ -44,3 +45,24 @@ def is_request_visible(trip, carpool_request):
 def get_visible_requests(trip):
     pending_requests = CarpoolRequest.objects.filter(status='P')
     return [req for req in pending_requests if is_request_visible(trip, req)]
+
+def calculate_fare(trip, pickup_node, dropoff_node, p = 10, base_fee = 5):
+    remaining = list(trip.route.filter(passed = False).order_by('order'))
+    remaining_nodes = [n.node for n in remaining]
+
+    pickup_index = None
+    for i, n in enumerate(remaining_nodes):
+        if n == pickup_node:
+            pickup_index = i
+            break
+
+    dropoff_index = None
+    for i, n in enumerate(remaining_nodes):
+        if n == dropoff_node:
+            dropoff_index = i
+            break
+
+    # if node/nodes not on route
+    if pickup_index is None or dropoff_index is None:
+        # detour = new length - original length
+        pass

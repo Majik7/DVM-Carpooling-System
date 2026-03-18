@@ -1,0 +1,19 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Carpool Requests for Trip {{ trip.start_node.name }} → {{ trip.end_node.name }}</h2>
+
+{% for req in requests %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>Passenger: {{ req.passenger.username }}</p>
+        <p>Pickup: {{ req.pickup_node.name }}</p>
+        <p>Dropoff: {{ req.dropoff_node.name }}</p>
+        <a href="{% url 'rides:make_offer' trip.id req.id %}" class="btn btn-primary">Make Offer</a>
+    </div>
+</div>
+{% empty %}
+<p>No carpool requests available.</p>
+{% endfor %}
+
+<a href="{% url 'rides:driver_dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

@@ -7,3 +7,7 @@ class NewTripForm(forms.Form):
     start_node = forms.ModelChoiceField(queryset=Node.objects.all())
     end_node = forms.ModelChoiceField(queryset=Node.objects.all())
     max_passengers = forms.IntegerField(min_value=1)
+
+class CarpoolRequestForm(forms.Form):
+    pickup_node = forms.ModelChoiceField(queryset=Node.objects.all())
+    dropoff_node = forms.ModelChoiceField(queryset=Node.objects.all())

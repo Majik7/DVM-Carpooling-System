@@ -1,0 +1,10 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Request a Carpool</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary" type="submit">Submit Request</button>
+</form>
+<a href="{% url 'rides:passenger_dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}
