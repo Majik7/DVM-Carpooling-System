@@ -10,3 +10,6 @@ class Node(models.Model):
 class Edge(models.Model):
     prev_node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="outgoing", blank=True, null=True)
     next_node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name="incoming", blank=True, null=True)
+
+class ServiceStatus(models.Model):
+    is_active = models.BooleanField(default=True)

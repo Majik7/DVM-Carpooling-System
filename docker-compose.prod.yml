@@ -38,7 +38,7 @@ services:
     volumes:
       - certbot_etc:/etc/letsencrypt
       - certbot_www:/var/www/certbot
-    # entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     command: certonly --webroot --webroot-path=/var/www/certbot --email ranjan.akshat2007@gmail.com --agree-tos --no-eff-email -d dvmcarpool.duckdns.org
 
 volumes:

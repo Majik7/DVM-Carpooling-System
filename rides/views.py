@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from accounts.models import Transaction
 from rest_framework.response import Response
 from rest_framework import status
-from network.models import Node
+from network.models import Node, ServiceStatus
 from .serializers import CarpoolRequestSerializer
 
 # Create your views here.
@@ -46,6 +46,8 @@ def driver_dashboard(request):
 
 @login_required
 def new_ride(request):
+    if not is_service_active():
+        return render(request, 'rides/suspended.html')
     if not request.user.is_driver:
         raise PermissionDenied
     
@@ -140,7 +142,10 @@ def update_current_node(request, trip_id):
     
     return Response({'success': f'Current node updated to {node.name}'})
 
+@login_required
 def create_carpool_request(request):
+    if not is_service_active():
+        return render(request, 'rides/suspended.html')
     if not request.user.is_passenger:
         raise PermissionDenied
     if request.method == 'POST':
@@ -271,3 +276,6 @@ def cancel_request(request, request_id):
     
     return redirect('rides:passenger_dashboard')
     
+def is_service_active():
+    status = ServiceStatus.objects.first()
+    return status.is_active if status else True
