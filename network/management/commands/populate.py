@@ -39,14 +39,3 @@ class Command(BaseCommand):
         Edge.objects.create(prev_node=j, next_node=g)
 
         self.stdout.write(self.style.SUCCESS('Network populated!'))
-```
-
-This gives you:
-- Multiple paths between nodes (A→D can go via B→C or via F→G)
-- Side branches (H, I, J) for testing proximity matching
-- One-way roads
-- Dead ends (I is a dead end)
-
-Run with:
-```
-python manage.py populate_network
