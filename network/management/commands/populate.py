@@ -3,6 +3,9 @@ from network.models import Node, Edge
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
+        if Node.objects.exists():
+            self.stdout.write('Network already populated, skipping.')
+            return
         Node.objects.all().delete()
         Edge.objects.all().delete()
 

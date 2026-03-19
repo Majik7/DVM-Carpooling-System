@@ -48,6 +48,7 @@ def driver_dashboard(request):
 def new_ride(request):
     if not request.user.is_driver:
         raise PermissionDenied
+    
     if request.method == 'POST':
         form = NewTripForm(request.POST)
 
@@ -58,19 +59,24 @@ def new_ride(request):
 
             path = utils.create_path(start_node, end_node)
 
-            trip = Trip.objects.create(start_node = start_node,
-                                       end_node = end_node,
-                                       max_passengers = max_passengers,
-                                       driver = request.user)
-            
-        for i, node in enumerate(path):
-            RouteNode.objects.create(trip = trip, node = node, order = i)
-        
-        return redirect('rides:driver_dashboard')
+            if path:
+                trip = Trip.objects.create(
+                    start_node=start_node,
+                    end_node=end_node,
+                    max_passengers=max_passengers,
+                    driver=request.user
+                )
+                
+                for i, node in enumerate(path):
+                    RouteNode.objects.create(trip=trip, node=node, order=i)
+                
+                return redirect('rides:driver_dashboard')
+            else:
+                form.add_error(None, "No valid route exists between these nodes.")
     else:
         form = NewTripForm()
 
-    return render(request, 'rides/new_trip.html', context = {'form': form})
+    return render(request, 'rides/new_trip.html', {'form': form})
 
 @login_required
 def cancel_trip(request, trip_id):

@@ -6,18 +6,23 @@ def create_path(start_node, end_node):
         return [start_node]
         
     queue = [start_node] 
-    visited = [start_node]
+    visited = {start_node}
     parent = {}
+    found = False
     while queue:
         popped = queue.pop(0)
         if popped == end_node:
+            found = True
             break
         for edge in popped.outgoing.all():
             neighbor = edge.next_node
             if neighbor not in visited:
-                visited.append(neighbor)
+                visited.add(neighbor)
                 queue.append(neighbor)
                 parent[neighbor] = popped
+
+    if not found:
+        return []
     
     route = [end_node]
     j = parent[end_node]

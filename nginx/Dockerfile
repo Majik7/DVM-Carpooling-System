@@ -1,4 +1,10 @@
-FROM nginx:1.25
+# FROM nginx:1.25
 
-RUN rm /etc/nginx/conf.d/default.conf
-COPY nginx.conf /etc/nginx/conf.d
+# RUN rm /etc/nginx/conf.d/default.conf
+# COPY nginx.conf /etc/nginx/conf.d
+
+FROM nginx:latest
+
+RUN apt-get update && apt-get install -y certbot python3-certbot-nginx
+
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
