@@ -1,6 +1,6 @@
 {% extends 'rides/base.html' %}
 {% block content %}
-<h2>Carpool Requests for Trip {{ trip.start_node.name }} → {{ trip.end_node.name }}</h2>
+<h2>Carpool Requests for Trip {{ trip.route.all|dictsort:"order"|join:" -> " }}</h2>
 
 {% for req in requests %}
 <div class="card mb-2">

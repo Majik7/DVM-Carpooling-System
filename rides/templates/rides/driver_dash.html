@@ -10,7 +10,7 @@
 {% for trip in ongoing_trips %}
 <div class="card mb-2">
     <div class="card-body">
-        <p>{{ trip.start_node.name }} → {{ trip.end_node.name }}</p>
+        <p><strong>Route:</strong> {{ trip.route.all|dictsort:"order"|join:" -> " }}</p>
         <p>Max Passengers: {{ trip.max_passengers }}</p>
         <p>Status: {{ trip.get_status_display }}</p>
         <a href="{% url 'rides:view_carpool_requests' trip.id %}" class="btn btn-info">View Requests</a>
@@ -26,7 +26,7 @@
 {% for trip in completed_trips %}
 <div class="card mb-2">
     <div class="card-body">
-        <p>{{ trip.start_node.name }} → {{ trip.end_node.name }}</p>
+        <p><strong>Route:</strong> {{ trip.route.all|dictsort:"order"|join:" -> " }}</p>
         <p>Status: {{ trip.get_status_display }}</p>
     </div>
 </div>

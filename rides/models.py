@@ -16,11 +16,15 @@ class Trip(models.Model):
     max_passengers = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+
 class RouteNode(models.Model):
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE, related_name='route')
     node = models.ForeignKey(Node, on_delete=models.CASCADE)
     order = models.IntegerField()
     passed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.node.name)
 
 class CarpoolRequest(models.Model):
     STATUS_CHOICES = [
