@@ -6,6 +6,7 @@ from .forms import NewTripForm, CarpoolRequestForm
 from . import utils
 from .models import Trip, RouteNode, CarpoolRequest, Offer
 from rest_framework.decorators import api_view
+from accounts.models import Transaction
 from rest_framework.response import Response
 from rest_framework import status
 from network.models import Node
@@ -85,6 +86,26 @@ def complete_trip(request, trip_id):
     trip = Trip.objects.get(id=trip_id, driver=request.user)
     if trip.driver != request.user:
         raise PermissionDenied
+        
+    accepted_offers = trip.offers.filter(status='A')
+    
+    for offer in accepted_offers:
+        if offer.carpool_request.passenger.wallet_balance < offer.fare:
+            return redirect('rides:driver_dashboard')
+            
+    for offer in accepted_offers:
+        passenger = offer.carpool_request.passenger
+        driver = trip.driver
+        fare = offer.fare
+        
+        passenger.wallet_balance -= fare
+        passenger.save()
+        Transaction.objects.create(user=passenger, amount=-fare, transaction_type='fare', trip=trip)
+        
+        driver.wallet_balance += fare
+        driver.save()
+        Transaction.objects.create(user=driver, amount=fare, transaction_type='earning', trip=trip)
+
     trip.status = 'C'
     trip.save()
     return redirect('rides:driver_dashboard')

@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from .forms import SignupForm
+from decimal import Decimal
+from .models import Transaction
 
 # Create your views here.
 def signup(request):
@@ -47,3 +50,42 @@ def passenger_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'accounts/passenger_login.html', {'form': form})
+
+@login_required
+def role_select(request):
+    user = request.user
+    if user.is_driver:
+        return redirect('rides:driver_dashboard')
+    elif user.is_passenger:
+        return redirect('rides:passenger_dashboard')
+    
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        if role == 'driver':
+            user.is_driver = True
+            user.save()
+            return redirect('rides:driver_dashboard')
+        elif role == 'passenger':
+            user.is_passenger = True
+            user.save()
+            return redirect('rides:passenger_dashboard')
+            
+    return render(request, 'accounts/role_select.html')
+
+@login_required
+def wallet(request):
+    user = request.user
+    if request.method == 'POST':
+        amount = float(request.POST.get('amount', 0))
+        if amount > 0:
+            user.wallet_balance += Decimal(str(amount))
+            user.save()
+            Transaction.objects.create(
+                user=user,
+                amount=amount,
+                transaction_type='topup'
+            )
+            return redirect('accounts:wallet')
+            
+    transactions = user.transactions.all().order_by('-created_at')
+    return render(request, 'accounts/wallet.html', {'transactions': transactions})
