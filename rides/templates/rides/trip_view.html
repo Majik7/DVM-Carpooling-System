@@ -1,0 +1,34 @@
+{% extends 'rides/base.html' %}
+{% block content %}
+<h2>Trip: {{ trip.start_node.name }} → {{ trip.end_node.name }}</h2>
+<p>Status: {{ trip.get_status_display }}</p>
+<p>Current Node: {{ trip.current_node.name|default:"Not started" }}</p>
+
+<h4>Route</h4>
+<ul>
+{% for r in route %}
+    <li>
+        {{ r.node.name }}
+        {% if r.passed %} ✅ {% else %} ⬜ {% endif %}
+        {% if r.node == trip.current_node %} ← You are here {% endif %}
+    </li>
+{% endfor %}
+</ul>
+
+<h4>Confirmed Passengers</h4>
+{% for passenger in passengers %}
+<div class="card mb-2">
+    <div class="card-body">
+        <p>{{ passenger.username }}</p>
+    </div>
+</div>
+{% empty %}
+<p>No confirmed passengers.</p>
+{% endfor %}
+
+<h4>Actions</h4>
+<a href="{% url 'rides:view_carpool_requests' trip.id %}" class="btn btn-info">View Carpool Requests</a>
+<a href="{% url 'rides:complete_trip' trip.id %}" class="btn btn-success">Complete Trip</a>
+<a href="{% url 'rides:cancel_trip' trip.id %}" class="btn btn-danger">Cancel Trip</a>
+<a href="{% url 'rides:driver_dashboard' %}" class="btn btn-secondary">Back</a>
+{% endblock %}

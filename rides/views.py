@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
@@ -279,3 +279,21 @@ def cancel_request(request, request_id):
 def is_service_active():
     status = ServiceStatus.objects.first()
     return status.is_active if status else True
+
+@login_required
+def trip_view(request, trip_id):
+    trip = get_object_or_404(Trip, pk=trip_id)
+    
+    passenger_list = [offer.carpool_request.passenger for offer in trip.offers.filter(status='A')]
+    
+    route = trip.route.order_by('order')
+    current_node = trip.current_node
+    remaining = trip.route.filter(passed=False).order_by('order')
+    
+    return render(request, 'rides/trip_view.html', {
+        'trip': trip,
+        'passengers': passenger_list,
+        'route': route,
+        'current_node': current_node,
+        'remaining': remaining,
+    })

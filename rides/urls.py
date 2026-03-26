@@ -17,4 +17,5 @@ urlpatterns = [
     path('request/<int:request_id>/cancel/', views.cancel_request, name='cancel_request'),
     path('trip/<int:trip_id>/offer/<int:request_id>/', views.make_offer, name='make_offer'),
     path('offer/<int:offer_id>/confirm/', views.confirm_offer, name='confirm_offer'),
+    path('trip/<int:trip_id>', views.trip_view, name='trip_view'),
 ]

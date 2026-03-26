@@ -28,8 +28,8 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "0") == "1"
 
-_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
-ALLOWED_HOSTS = _hosts.split(" ") if _hosts else (["*"] if DEBUG else [])
+hosts = os.environ.get("DJANGO_ALLOWED_HOSTS")
+ALLOWED_HOSTS = hosts.split()
 
 
 # Application definition
