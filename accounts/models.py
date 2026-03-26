@@ -4,8 +4,8 @@ from django.db import models
 class User(AbstractUser):
     is_driver = models.BooleanField(default=False)
     is_passenger = models.BooleanField(default=False)
-    wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
+    wallet_balance = models.DecimalField(max_digits=10, default=0)
+s=2
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
         ('topup', 'Top Up'),
