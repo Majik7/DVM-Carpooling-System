@@ -38,6 +38,9 @@ class CarpoolRequest(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, default='P', max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.passenger.username}_r_{self.pickup_node}-{self.dropoff_node}" 
+
 class Offer(models.Model):
     STATUS_CHOICES = [
         ('P', 'Pending'),
@@ -51,3 +54,6 @@ class Offer(models.Model):
     status = models.CharField(choices=STATUS_CHOICES, default='P', max_length=1)
     pickup_order = models.IntegerField(default=0)
     dropoff_order = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.trip.driver.username}_o_{self.carpool_request.pickup_node}-{self.carpool_request.dropoff_node}"
