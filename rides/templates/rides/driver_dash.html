@@ -17,6 +17,7 @@
         <p><strong>Route:</strong> {{ trip.route.all|dictsort:"order"|join:" -> " }}</p>
         <p>Max Passengers: {{ trip.max_passengers }}</p>
         <p>Status: {{ trip.get_status_display }}</p>
+        <a href="{% url 'rides:trip_view' trip.id %}" class="btn btn-info">Trip Info</a>
         <a href="{% url 'rides:view_carpool_requests' trip.id %}" class="btn btn-info">View Requests</a>
         <a href="{% url 'rides:complete_trip' trip.id %}" class="btn btn-success">Complete</a>
         <a href="{% url 'rides:cancel_trip' trip.id %}" class="btn btn-danger">Cancel</a>
