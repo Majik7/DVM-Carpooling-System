@@ -27,6 +27,7 @@
 {% endfor %}
 
 <h4>Actions</h4>
+<a href="{% url 'rides:update_node' trip.id %}" class="btn btn-info">Update Current Node</a>
 <a href="{% url 'rides:view_carpool_requests' trip.id %}" class="btn btn-info">View Carpool Requests</a>
 <a href="{% url 'rides:complete_trip' trip.id %}" class="btn btn-success">Complete Trip</a>
 <a href="{% url 'rides:cancel_trip' trip.id %}" class="btn btn-danger">Cancel Trip</a>
