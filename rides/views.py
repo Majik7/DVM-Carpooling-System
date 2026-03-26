@@ -153,7 +153,7 @@ def create_carpool_request(request):
         if form.is_valid():
             pickup_node = form.cleaned_data['pickup_node']
             dropoff_node = form.cleaned_data['dropoff_node']
-            CarpoolRequest.objects.create(
+            CarpoolRequest.objects.get_or_create(
                 passenger=request.user,
                 pickup_node=pickup_node,
                 dropoff_node=dropoff_node,
@@ -212,7 +212,7 @@ def make_offer(request, trip_id, request_id):
     
     detour, fare, pickup_order, dropoff_order = utils.calculate_fare(trip, carpool_request.pickup_node, carpool_request.dropoff_node)
     
-    Offer.objects.create(
+    Offer.objects.get_or_create(
         trip=trip,
         carpool_request=carpool_request,
         detour=detour,
