@@ -4,7 +4,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from .forms import SignupForm
 from decimal import Decimal
-from .models import Transaction
+from .models import Transaction, User
 
 # Create your views here.
 def signup(request):
@@ -89,3 +89,13 @@ def wallet(request):
             
     transactions = user.transactions.all().order_by('-created_at')
     return render(request, 'accounts/wallet.html', {'transactions': transactions})
+
+@login_required
+def user_profile(request, user_id):
+    profile_user = User.objects.get(pk = user_id)
+    context = {"profile_user": profile_user}
+
+    if profile_user.is_driver:
+        return render(request, 'accounts/driver_profile.html', context=context)
+    elif profile_user.is_passenger:
+        return render(request, 'accounts/passenger_profile.html', context=context)

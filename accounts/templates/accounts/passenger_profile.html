@@ -1,0 +1,18 @@
+{% extends 'rides/base.html' %}
+{% load socialaccount %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center">
+            {% if profile_user.socialaccount_set.all %}
+                {% with profile_user.socialaccount_set.all.0 as social %}
+                    <img src="{{ social.get_avatar_url }}" alt="Profile" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                    <h2>Passenger: {{ profile_user.first_name }} {{ profile_user.last_name }}</h2>
+                {% endwith %}
+            {% else %}
+                <h2>Passenger: {{ profile_user.username }}</h2>
+            {% endif %}
+        </div>
+</div>
+{% endblock %}

@@ -12,4 +12,5 @@ urlpatterns = [
     path("signup/", views.signup, name="signup"),
     path("role-select/", views.role_select, name="role_select"),
     path("wallet/", views.wallet, name="wallet"),
+    path("profile/<int:user_id>", views.user_profile, name="user_profile"),
 ]
