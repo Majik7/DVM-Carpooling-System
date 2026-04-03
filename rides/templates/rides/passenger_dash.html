@@ -2,19 +2,20 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
     {% if user.socialaccount_set.all %}
-        <h2>Welcome, {{passenger.first_name}} {{passenger.last_name}}</h2>
+        <h2>Welcome, {{ passenger.first_name }} {{ passenger.last_name }}</h2>
     {% else %}
         <h2>Welcome, {{ passenger.username }}</h2>
     {% endif %}
     <form method="post" action="{% url 'accounts:logout' %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Logout</button>
-</form>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Logout</button>
+    </form>
     <div>
         <h4 class="text-success d-inline mr-3">Wallet: ${{ passenger.wallet_balance }}</h4>
         <a href="{% url 'accounts:wallet' %}" class="btn btn-secondary">Manage Wallet</a>
     </div>
 </div>
+
 <a href="{% url 'rides:create_carpool_request' %}" class="btn btn-primary mb-3">Request a Carpool</a>
 
 <h4>Active Requests</h4>
@@ -32,13 +33,36 @@
 
 <h4 class="mt-4">Confirmed Requests</h4>
 {% for req in confirmed_requests %}
-<div class="card mb-2">
+<div class="card mb-2 bg-light">
     <div class="card-body">
         <p>{{ req.pickup_node.name }} → {{ req.dropoff_node.name }}</p>
-        <p>Status: Confirmed</p>
+        <p class="text-primary mb-0">Status: Confirmed / Ongoing</p>
     </div>
 </div>
 {% empty %}
 <p>No confirmed requests.</p>
 {% endfor %}
+
+<h4 class="mt-4">Past Trips</h4>
+{% for req in completed_requests %}
+<div class="card mb-2 border-success">
+    <div class="card-body d-flex justify-content-between align-items-center">
+        <div>
+            <p class="mb-1"><strong>{{ req.pickup_node.name }} → {{ req.dropoff_node.name }}</strong></p>
+            <small class="text-success">Status: Completed</small>
+        </div>
+        
+        {% for offer in req.offers.all %}
+            {% if offer.status == 'A' %}
+                <a href="{% url 'accounts:rate_driver' offer.trip.id %}" class="btn btn-sm btn-outline-primary">
+                    Rate Driver
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% empty %}
+<p>No past trips found.</p>
+{% endfor %}
+
 {% endblock %}

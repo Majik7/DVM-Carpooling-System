@@ -13,4 +13,6 @@ urlpatterns = [
     path("role-select/", views.role_select, name="role_select"),
     path("wallet/", views.wallet, name="wallet"),
     path("profile/<int:user_id>", views.user_profile, name="user_profile"),
+    path("ratedriver/trip/<int:trip_id>", views.rate_driver, name="rate_driver"),
+    path("ratepassengers/trip/<int:trip_id>", views.rate_passengers, name="rate_passengers"),
 ]

@@ -1,0 +1,38 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-0">
+            <div class="card-body text-center p-5">
+                <div class="mb-4">
+                    <div class="bg-primary rounded-circle mx-auto d-flex align-items-center justify-content-center text-white mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                        {{ trip.driver.username }}
+                    </div>
+                    <h3>How was your ride?</h3>
+                    <p class="text-muted">Rate your driver, <strong>{{ trip.driver.username }}</strong></p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label d-block text-start small fw-bold text-uppercase">Select Rating</label>
+                        <select name="score" class="form-select form-select-lg" required>
+                            <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                            <option value="4">⭐⭐⭐⭐ (Good)</option>
+                            <option value="3">⭐⭐⭐ (Average)</option>
+                            <option value="2">⭐⭐ (Poor)</option>
+                            <option value="1">⭐ (Terrible)</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">Submit Rating</button>
+                        <a href="{% url 'rides:passenger_dashboard' %}" class="btn btn-link text-muted">Skip for now</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'rides/base.html' %}
+{% extends 'accounts/base.html' %}
 {% load socialaccount %}
 
 {% block content %}
@@ -14,5 +14,11 @@
                 <h2>Passenger: {{ profile_user.username }}</h2>
             {% endif %}
         </div>
+
+        <div class="text-center bg-light p-3 rounded" style="min-width: 100px;">
+            <h3 class="mb-0 text-success">{{ rating }} ★</h3>
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 0.7rem;">Rating</small>
+        </div>
+    </div>
 </div>
 {% endblock %}

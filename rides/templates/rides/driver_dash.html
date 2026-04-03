@@ -37,6 +37,9 @@
     <div class="card-body">
         <p><strong>Route:</strong> {{ trip.route.all|dictsort:"order"|join:" -> " }}</p>
         <p>Status: {{ trip.get_status_display }}</p>
+        <a href="{% url 'accounts:rate_passengers' trip.id %}" class="btn btn-sm btn-outline-primary">
+            Rate Passengers
+        </a>
     </div>
 </div>
 {% empty %}

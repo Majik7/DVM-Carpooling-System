@@ -20,13 +20,16 @@ def passenger_dashboard(request):
         raise PermissionDenied
     
     active_requests = CarpoolRequest.objects.filter(passenger=request.user, status='P')
-    confirmed_requests = CarpoolRequest.objects.filter(passenger=request.user, status='C')
+    confirmed_requests = CarpoolRequest.objects.filter(passenger=request.user, status='C').exclude(offers__trip__status = 'C')
     cancelled_requests = CarpoolRequest.objects.filter(passenger=request.user, status='X')
+
+    completed_requests = CarpoolRequest.objects.filter(passenger=request.user, status='C', offers__trip__status='C')
     
     return render(request, 'rides/passenger_dash.html', {
         'active_requests': active_requests,
         'confirmed_requests': confirmed_requests,
         'cancelled_requests': cancelled_requests,
+        'completed_requests': completed_requests,
         'passenger': request.user
     })
 
