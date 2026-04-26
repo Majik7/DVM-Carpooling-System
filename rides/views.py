@@ -16,6 +16,9 @@ from .serializers import CarpoolRequestSerializer
 
 @login_required
 def passenger_dashboard(request):
+    if request.user.is_driver:
+        return redirect("rides:driver_dashboard")
+    
     if not request.user.is_passenger:
         raise PermissionDenied
     

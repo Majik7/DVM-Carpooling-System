@@ -24,5 +24,5 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("accounts/", include("allauth.urls")),
     path("app/", include("rides.urls")),
-    path('', RedirectView.as_view(pattern_name = 'accounts:login')),
+    path('', RedirectView.as_view(pattern_name = 'rides:passenger_dashboard')),
 ]
