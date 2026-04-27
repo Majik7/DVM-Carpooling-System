@@ -170,7 +170,7 @@ def create_carpool_request(request):
     return render(request, 'rides/carpool_request.html', {'form': form})
 
 @login_required
-@api_view(['POST'])
+@api_view(['GET'])
 def get_carpool_requests(request, trip_id):
     if not request.user.is_driver:
         raise PermissionDenied
