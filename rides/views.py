@@ -20,7 +20,7 @@ def passenger_dashboard(request):
         return redirect("rides:driver_dashboard")
     
     if not request.user.is_passenger:
-        raise PermissionDenied
+        return redirect('accounts:role_select')
     
     active_requests = CarpoolRequest.objects.filter(passenger=request.user, status='P')
     confirmed_requests = CarpoolRequest.objects.filter(passenger=request.user, status='C').exclude(offers__trip__status = 'C')
@@ -38,7 +38,9 @@ def passenger_dashboard(request):
 
 @login_required
 def driver_dashboard(request):
-    if not(request.user.is_driver):
+    if not request.user.is_driver:
+        if not request.user.is_passenger:
+            return redirect('accounts:role_select')
         raise PermissionDenied
     else:
         ongoing_rides = Trip.objects.filter(driver = request.user, status = 'O')
