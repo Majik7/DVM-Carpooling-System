@@ -27,7 +27,7 @@ class RouteNode(models.Model):
         return str(self.node.name)
 
 class CarpoolRequest(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES = [ 
         ('P', 'Pending'),
         ('C', 'Confirmed'),
         ('X', 'Cancelled'),
