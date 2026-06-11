@@ -10,7 +10,7 @@ urlpatterns = [
     path('cancel/<int:trip_id>/', views.cancel_trip, name='cancel_trip'),
     path('trip/<int:trip_id>/complete/', views.complete_trip, name='complete_trip'),
     path('trip/<int:trip_id>/update_node/', views.update_current_node, name='update_node'),
-    path('carpool/request/', views.create_carpool_request, name='create_carpool_request'),
+    # path('carpool/request/', views.create_carpool_request, name='create_carpool_request'),
     path('trip/<int:trip_id>/requests/', views.get_carpool_requests, name='get_carpool_requests'),
     path('trip/<int:trip_id>/requests/page/', views.view_carpool_requests, name='view_carpool_requests'),
     path('request/<int:request_id>/offers/', views.view_offers, name='view_offers'),
@@ -18,4 +18,8 @@ urlpatterns = [
     path('trip/<int:trip_id>/offer/<int:request_id>/', views.make_offer, name='make_offer'),
     path('offer/<int:offer_id>/confirm/', views.confirm_offer, name='confirm_offer'),
     path('trip/<int:trip_id>', views.trip_view, name='trip_view'),
+
+    path('available', views.show_available_rides, name="show_available_rides"),
+    path('create_request/<int:trip_id>', views.create_carpool_request, name='create_carpool_request'),
+
 ]

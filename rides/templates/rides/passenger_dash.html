@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<a href="{% url 'rides:create_carpool_request' %}" class="btn btn-primary mb-3">Request a Carpool</a>
+<a href="{% url 'rides:show_available_rides' %}" class="btn btn-primary mb-3">Check available rides</a>
 
 <h4>Active Requests</h4>
 {% for req in active_requests %}

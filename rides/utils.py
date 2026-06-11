@@ -1,11 +1,11 @@
 from network.models import Node, Edge
-from .models import CarpoolRequest
+from .models import CarpoolRequest, Trip, RouteNode
 
 def create_path(start_node, end_node):
     if start_node == end_node:
         return [start_node]
         
-    queue = [start_node] 
+    queue = [start_node]
     visited = {start_node}
     parent = {}
     found = False
@@ -70,21 +70,24 @@ def calculate_fare(trip, pickup_node, dropoff_node, p=10, base_fee=5):
     current = remaining_nodes[0]
     destination = remaining_nodes[-1]
     
-    new_length = (
-        len(create_path(current, pickup_node)) - 1 +
-        len(create_path(pickup_node, dropoff_node)) - 1 +
-        len(create_path(dropoff_node, destination)) - 1
-    )
+    topickup = create_path(current, pickup_node)
+    picktodrop = create_path(pickup_node, dropoff_node)
+    droptoend = create_path(dropoff_node, destination)
+
+    # unreachable
+    if not topickup or not picktodrop or not droptoend:
+        return None
     
+    full_path = topickup + picktodrop[1:] + droptoend[1:]
+    new_length = len(full_path) - 1
     detour = new_length - original_length
     
-    pickup_path = create_path(current, pickup_node)
-    pickup_order = len(pickup_path) - 1
-    dropoff_order = pickup_order + len(create_path(pickup_node, dropoff_node)) - 1
+    pickup_order = len(topickup) - 1
+    dropoff_order = pickup_order + len(picktodrop) - 1
     num_hops_of_passenger = dropoff_order - pickup_order
     
     fare = base_fee
     for i in range(num_hops_of_passenger):
         fare += p * (1 / (get_passengers_at_hop(trip, pickup_order + i) + 1))
     
-    return detour, round(fare, 2), pickup_order, dropoff_order
+    return detour, round(fare, 2), pickup_order, dropoff_order, full_path

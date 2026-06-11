@@ -150,26 +150,57 @@ def update_current_node(request, trip_id):
     
     return Response({'success': f'Current node updated to {node.name}'})
 
+# @login_required
+# def create_carpool_request(request):
+#     if not is_service_active():
+#         return render(request, 'rides/suspended.html')
+#     if not request.user.is_passenger:
+#         raise PermissionDenied
+#     if request.method == 'POST':
+#         form = CarpoolRequestForm(request.POST)
+#         if form.is_valid():
+#             pickup_node = form.cleaned_data['pickup_node']
+#             dropoff_node = form.cleaned_data['dropoff_node']
+#             CarpoolRequest.objects.get_or_create(
+#                 passenger=request.user,
+#                 pickup_node=pickup_node,
+#                 dropoff_node=dropoff_node,
+#             )
+#             return redirect('rides:passenger_dashboard')
+#     else:
+#         form = CarpoolRequestForm()
+#     return render(request, 'rides/carpool_request.html', {'form': form})
+
 @login_required
-def create_carpool_request(request):
-    if not is_service_active():
-        return render(request, 'rides/suspended.html')
+def create_carpool_request(request, trip_id):
     if not request.user.is_passenger:
         raise PermissionDenied
+    
+    if not is_service_active():
+        return render(request, 'rides/suspended.html')
+    
+    try:
+        trip = Trip.objects.get(id=trip_id)
+    except Trip.DoesNotExist:
+        raise PermissionDenied
+    
     if request.method == 'POST':
         form = CarpoolRequestForm(request.POST)
         if form.is_valid():
             pickup_node = form.cleaned_data['pickup_node']
             dropoff_node = form.cleaned_data['dropoff_node']
+            
             CarpoolRequest.objects.get_or_create(
                 passenger=request.user,
                 pickup_node=pickup_node,
                 dropoff_node=dropoff_node,
+                status='P'
             )
             return redirect('rides:passenger_dashboard')
     else:
         form = CarpoolRequestForm()
-    return render(request, 'rides/carpool_request.html', {'form': form})
+    
+    return render(request, 'rides/carpool_request.html', {'form': form, 'trip': trip})
 
 @login_required
 @api_view(['GET'])
@@ -191,16 +222,17 @@ def view_carpool_requests(request, trip_id):
         raise PermissionDenied
     
     try:
-        trip = Trip.objects.get(pk = trip_id)
-        visible_requests = utils.get_visible_requests(trip)
-        for req in visible_requests:
-            detour, fare, _, _ = utils.calculate_fare(trip, req.pickup_node, req.dropoff_node)
-            req.detour = detour
-            req.fare = fare
-    except:
-        return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
-
-    return render(request, 'rides/view_carpool_requests.html', context={
+        trip = Trip.objects.get(pk=trip_id, driver=request.user)
+    except Trip.DoesNotExist:
+        return redirect('rides:driver_dashboard')
+    
+    visible_requests = utils.get_visible_requests(trip)
+    for req in visible_requests:
+        detour, fare, _, _, _ = utils.calculate_fare(trip, req.pickup_node, req.dropoff_node)
+        req.detour = detour
+        req.fare = fare
+    
+    return render(request, 'rides/view_carpool_requests.html', {
         'trip': trip,
         'requests': visible_requests,
     })
@@ -218,7 +250,7 @@ def make_offer(request, trip_id, request_id):
     except CarpoolRequest.DoesNotExist:
         raise PermissionDenied
     
-    detour, fare, pickup_order, dropoff_order = utils.calculate_fare(trip, carpool_request.pickup_node, carpool_request.dropoff_node)
+    detour, fare, pickup_order, dropoff_order, _ = utils.calculate_fare(trip, carpool_request.pickup_node, carpool_request.dropoff_node)
     
     Offer.objects.get_or_create(
         trip=trip,
@@ -257,11 +289,38 @@ def confirm_offer(request, offer_id):
     if offer.carpool_request.passenger != request.user:
         raise PermissionDenied
     
+    trip = offer.trip
+    pickup_node = offer.carpool_request.pickup_node
+    dropoff_node = offer.carpool_request.dropoff_node
+
+    # rebuilding route
+    remaining = trip.route.filter(passed=False).order_by('order')
+    current = remaining.first().node
+    destination = remaining.last().node
+    last_passed = trip.route.filter(passed=True).order_by('order').last()
+    last_passed_order = last_passed.order if last_passed else 0
+
+    topickup = utils.create_path(current, pickup_node)
+    picktodrop = utils.create_path(pickup_node, dropoff_node)
+    droptoend = utils.create_path(dropoff_node, destination)
+
+    if not topickup or not picktodrop or not droptoend:
+        return redirect('rides:passenger_dashboard')
+
+    full_path = topickup + picktodrop[1:] + droptoend[1:]
+
+    remaining.delete()
+    for i, node in enumerate(full_path):
+        RouteNode.objects.create(
+            trip=trip,
+            node=node,
+            order=last_passed_order + 1 + i
+        )
+
     offer.status = 'A'
     offer.save()
-    
+
     offer.carpool_request.offers.exclude(id=offer.id).update(status='R')
-    
     offer.carpool_request.status = 'C'
     offer.carpool_request.save()
     
@@ -304,4 +363,39 @@ def trip_view(request, trip_id):
         'route': route,
         'current_node': current_node,
         'remaining': remaining,
+    })
+
+@login_required
+def show_available_rides(request):
+    if not request.user.is_passenger:
+        raise PermissionDenied
+    
+    nodes = Node.objects.all()
+    tripset = None
+    
+    pickup_id = request.GET.get('pickup_node_id')
+    dropoff_id = request.GET.get('dropoff_node_id')
+    
+    if pickup_id and dropoff_id:
+        try:
+            pickup_node = Node.objects.get(id=pickup_id)
+            dropoff_node = Node.objects.get(id=dropoff_id)
+        except Node.DoesNotExist:
+            return render(request, 'rides/available_rides.html', {'nodes': nodes})
+        
+        pickup_within2 = utils.nodes_within_2(pickup_node)
+        pickup_within2.add(pickup_node)
+
+        dropoff_within2 = utils.nodes_within_2(dropoff_node)
+        dropoff_within2.add(dropoff_node)
+
+        tripset = Trip.objects.filter(
+            route__node__in = pickup_within2,
+            route__passed = False,
+            status = "O"
+        ).filter(route__node__in = dropoff_within2).distinct()
+    
+    return render(request, 'rides/available_rides.html', {  # outside the if block
+        'nodes': nodes,
+        'trips': tripset
     })
