@@ -198,7 +198,10 @@ def create_carpool_request(request, trip_id):
             )
             return redirect('rides:passenger_dashboard')
     else:
-        form = CarpoolRequestForm()
+        form = CarpoolRequestForm(initial={
+            "pickup_node": request.GET.get("pickup_id"),
+            "dropoff_node": request.GET.get("dropoff_id"),
+        })
     
     return render(request, 'rides/carpool_request.html', {'form': form, 'trip': trip})
 
@@ -397,5 +400,45 @@ def show_available_rides(request):
     
     return render(request, 'rides/available_rides.html', {  # outside the if block
         'nodes': nodes,
-        'trips': tripset
+        'trips': tripset,
+        'pickup_id': pickup_id,
+        'dropoff_id': dropoff_id,
     })
+
+@login_required
+def update_by_one(request, trip_id):
+    try:
+        trip = Trip.objects.get(id=trip_id, driver=request.user)
+    except Trip.DoesNotExist:
+        raise PermissionDenied
+    
+    remaining = list(trip.route.filter(passed=False).order_by('order'))
+    
+    if not remaining:
+        return redirect('rides:trip_view', trip_id=trip_id)
+    
+    # if trip.current_node == trip.route.order_by('order').first().node:
+    #     current = remaining[1]
+    # else:
+    #     current = remaining[0]
+    if not trip.current_node:
+        current = remaining[0]
+
+    elif len(remaining) < 2:
+        current = remaining[-1]
+        trip.status = "C"
+        trip.save()
+
+    else:
+        current = remaining[1]
+
+    trip.current_node = current.node
+    trip.save()
+    
+    trip.route.filter(order__lt=current.order).update(passed=True)
+
+    print("current_node:", trip.current_node)
+    print("remaining:", remaining)
+    print("selected current:", current.node)
+    
+    return redirect('rides:trip_view', trip_id=trip_id)

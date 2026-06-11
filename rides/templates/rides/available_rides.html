@@ -23,7 +23,7 @@
             <p>Driver: {{ trip.driver.username }}</p>
             <p>Start: {{ trip.start_node.name }}</p>
             <p>Destination: {{ trip.end_node.name }}</p>
-            <a href="{% url 'rides:create_carpool_request' trip.id %}" class="btn btn-primary">Request Ride</a>
+            <a href="{% url 'rides:create_carpool_request' trip.id %}?pickup_id={{ pickup_id }}&dropoff_id={{ dropoff_id }}" class="btn btn-primary">Request Ride</a>
         </div>
     </div>
     {% empty %}

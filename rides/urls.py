@@ -22,4 +22,5 @@ urlpatterns = [
     path('available', views.show_available_rides, name="show_available_rides"),
     path('create_request/<int:trip_id>', views.create_carpool_request, name='create_carpool_request'),
 
+    path('trip/<int:trip_id>/update_by_one', views.update_by_one, name="update_by_one"),
 ]
