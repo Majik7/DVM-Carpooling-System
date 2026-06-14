@@ -194,7 +194,8 @@ def create_carpool_request(request, trip_id):
                 passenger=request.user,
                 pickup_node=pickup_node,
                 dropoff_node=dropoff_node,
-                status='P'
+                status='P',
+                trip=trip,
             )
             return redirect('rides:passenger_dashboard')
     else:
@@ -215,7 +216,7 @@ def get_carpool_requests(request, trip_id):
     except:
         return Response({'error': 'Trip not found'}, status = status.HTTP_404_NOT_FOUND)
     
-    visible_requests = utils.get_visible_requests(trip)
+    visible_requests = trip.requests.filter(status = "P")
     serializer = CarpoolRequestSerializer(visible_requests, many = True)
     return Response(serializer.data)
 
@@ -229,7 +230,7 @@ def view_carpool_requests(request, trip_id):
     except Trip.DoesNotExist:
         return redirect('rides:driver_dashboard')
     
-    visible_requests = utils.get_visible_requests(trip)
+    visible_requests = trip.requests.filter(status = "P")
     for req in visible_requests:
         detour, fare, _, _, _ = utils.calculate_fare(trip, req.pickup_node, req.dropoff_node)
         req.detour = detour

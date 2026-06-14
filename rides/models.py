@@ -37,6 +37,7 @@ class CarpoolRequest(models.Model):
     dropoff_node = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='dropoffs')
     status = models.CharField(choices=STATUS_CHOICES, default='P', max_length=1)
     created_at = models.DateTimeField(auto_now_add=True)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE, null=True, blank=True , related_name="requests")
 
     def __str__(self):
         return f"{self.passenger.username}_r_{self.pickup_node}-{self.dropoff_node}" 

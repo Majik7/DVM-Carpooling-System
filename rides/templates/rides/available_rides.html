@@ -20,6 +20,7 @@
     {% for trip in trips %}
     <div class="card mb-2">
         <div class="card-body">
+            <p>Trip ID: {{ trip.id }}</p>
             <p>Driver: {{ trip.driver.username }}</p>
             <p>Start: {{ trip.start_node.name }}</p>
             <p>Destination: {{ trip.end_node.name }}</p>
